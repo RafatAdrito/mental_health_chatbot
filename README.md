@@ -168,41 +168,6 @@ Database - PostgreSQL
 | Testing | Pytest, pytest-asyncio, HTTPX ASGI transport |
 | External Data | OpenStreetMap Overpass API |
 
-## Core API Surface
-
-| Method | Endpoint | Purpose |
-| --- | --- | --- |
-| `POST` | `/api/v1/auth/signup` | Create account and return JWT |
-| `POST` | `/api/v1/auth/login` | Authenticate user and return JWT |
-| `GET` | `/api/v1/auth/me` | Load current user profile |
-| `POST` | `/api/v1/chat/session` | Create a conversation session |
-| `GET` | `/api/v1/chat/sessions` | List user's sessions |
-| `GET` | `/api/v1/chat/history/{session_id}` | Load session messages |
-| `DELETE` | `/api/v1/chat/session/{session_id}` | Delete session, messages, mood links, and graph checkpoints |
-| `POST` | `/api/v1/chat` | Send chat message through REST |
-| `WS` | `/api/v1/chat/ws/{session_id}` | Stream AI response tokens |
-| `GET` | `/api/v1/mood` | Fetch mood history |
-| `POST` | `/api/v1/mood` | Create mood entry |
-| `GET` | `/api/v1/resources/crisis-lines` | Fetch crisis helplines |
-| `GET` | `/api/v1/resources/nearby` | Find nearby support resources |
-
-## Data Model
-
-```text
-User
-  -> ConversationSession
-      -> ConversationMessage
-      -> MoodEntry
-  -> MoodEntry
-```
-
-Key design decisions:
-
-- UUID primary keys for users, sessions, messages, and mood entries.
-- Cascade delete for session-related data.
-- Separate `ConversationMessage` table for durable chat history.
-- `MoodEntry` can be tied to a session or stored independently.
-- User preferences are stored as JSON for flexible personalization.
 
 ## Frontend Features
 
