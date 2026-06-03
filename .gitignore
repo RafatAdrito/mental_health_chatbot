@@ -1,0 +1,56 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Python virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Backend local files
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
+# Frontend dependencies
+node_modules/
+
+# Frontend build output
+dist/
+build/
+
+# Vite / frontend cache
+.vite/
+.vite-temp/
+
+# Package manager logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
