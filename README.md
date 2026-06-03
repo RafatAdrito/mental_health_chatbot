@@ -47,7 +47,7 @@ When a high-risk message is detected, MindfulChat responds with crisis-oriented 
 
 The system:
 
-- Shows Bangladesh-relevant crisis resources such as NIMH, Kaan Pete Roi, SAJIDA Foundation, and psychiatric emergency contacts.
+- Shows Bangladesh-relevant crisis resources such as NIMH and psychiatric emergency contacts.
 - Displays an in-app crisis alert panel in the frontend.
 - Encourages immediate emergency help when the user may be in danger.
 - Avoids pretending the AI can solve emergency situations alone.
@@ -249,15 +249,3 @@ cd Frontend
 npm install
 npm run dev
 ```
-
-## Why This Project Matters
-
-This project shows my ability to build a production-minded AI application in a sensitive domain. I implemented not only the happy path of an AI chat interface, but also the supporting business logic that real users need: authentication, session ownership, persistence, streaming, safety routing, resource escalation, mood tracking, test coverage, and graceful fallback behavior.
-
-For recruiters and reviewers, the strongest parts of this project are:
-
-- AI workflow orchestration with LangGraph instead of a single prompt call.
-- Practical safety guardrails for crisis and medical advice handling.
-- Full-stack implementation from database models to polished React UX.
-- Real-time chat streaming with resilient fallback.
-- Clear separation between product features, domain logic, and infrastructure.
