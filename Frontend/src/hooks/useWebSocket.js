@@ -46,7 +46,7 @@ export function useWebSocket() {
     connectTimer.current = setTimeout(() => {
       const token = getToken();
       const wsBase = BASE_URL.replace(/^http/, "ws");
-      const url = `${wsBase}/api/v1/chat/ws/${sessionId}${token ? `?token=${encodeURIComponent(token)}` : ""}`;
+      const url = `${wsBase}/api/v1/chat/wss/${sessionId}${token ? `?token=${encodeURIComponent(token)}` : ""}`;
       const socket = new WebSocket(url);
       ws.current = socket;
       connectTimer.current = null;

@@ -239,7 +239,7 @@ async def delete_session(
 
 # ── WebSocket ────────────────────────────────────────────────────────────────
 
-@router.websocket("/ws/{session_id}")
+@router.websocket("/wss/{session_id}")
 async def websocket_chat(websocket: WebSocket, session_id: str, token: str | None = None):
     """
     WebSocket endpoint. Pass the JWT as a query param:
