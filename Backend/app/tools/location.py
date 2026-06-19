@@ -6,10 +6,28 @@ _OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 # Bangladesh bounding box: (south, west, north, east)
 _BANGLADESH_BBOX = (20.7, 88.0, 26.6, 92.7)
 
-_OSM_TAG_MAP: dict[str, str] = {
-    "hospital": '["amenity"="hospital"]',
-    "therapist": '["healthcare"="psychotherapist"]',
-    "clinic": '["amenity"="clinic"]',
+# OSM regex used to identify mental-health specialities/facilities.
+# Matched case-insensitively against tag values (and, as a fallback, names).
+_MENTAL_HEALTH_REGEX = "psychiatry|psychiatric|psychotherapy|psychotherapist|psycholog|mental"
+
+# Each type maps to one or more Overpass clauses that target ONLY
+# mental-health related places (not general hospitals/clinics).
+_OSM_CLAUSE_MAP: dict[str, list[str]] = {
+    "hospital": [
+        f'nwr["amenity"="hospital"]["healthcare:speciality"~"{_MENTAL_HEALTH_REGEX}",i]',
+        f'nwr["amenity"="hospital"]["name"~"{_MENTAL_HEALTH_REGEX}",i]',
+        f'nwr["healthcare"="hospital"]["healthcare:speciality"~"{_MENTAL_HEALTH_REGEX}",i]',
+    ],
+    "therapist": [
+        'nwr["healthcare"="psychotherapist"]',
+        f'nwr["healthcare:speciality"~"{_MENTAL_HEALTH_REGEX}",i]',
+        f'nwr["amenity"="doctors"]["healthcare:speciality"~"{_MENTAL_HEALTH_REGEX}",i]',
+    ],
+    "clinic": [
+        f'nwr["amenity"="clinic"]["healthcare:speciality"~"{_MENTAL_HEALTH_REGEX}",i]',
+        f'nwr["amenity"="clinic"]["name"~"{_MENTAL_HEALTH_REGEX}",i]',
+        f'nwr["healthcare"="clinic"]["healthcare:speciality"~"{_MENTAL_HEALTH_REGEX}",i]',
+    ],
 }
 
 _MOCK_HOSPITALS = [
@@ -83,26 +101,24 @@ def _is_in_bangladesh(lat: float, lon: float) -> bool:
     return s <= lat <= n and w <= lon <= e
 
 
-def _build_overpass_query(latitude: float, longitude: float, query: str, radius: int = 10000) -> str:
-    """Build an Overpass QL query restricted to Bangladesh's bounding box."""
-    tag_filter = _OSM_TAG_MAP.get(query, '["amenity"="hospital"]')
+def _build_overpass_query(latitude: float, longitude: float, query: str, radius: int = 15000) -> str:
+    """Build an Overpass QL query restricted to Bangladesh's bounding box.
+
+    The clauses target only mental-health related places, so general
+    hospitals/clinics without a psychiatric speciality are excluded.
+    """
+    clauses = _OSM_CLAUSE_MAP.get(query, _OSM_CLAUSE_MAP["hospital"])
     s, w, n, e = _BANGLADESH_BBOX
     bbox = f"{s},{w},{n},{e}"
 
-    if query == "therapist":
-        return (
-            f"[out:json][timeout:10][bbox:{bbox}];"
-            f"("
-            f'  nwr{tag_filter}(around:{radius},{latitude},{longitude});'
-            f'  nwr["amenity"="doctors"](around:{radius},{latitude},{longitude});'
-            f");"
-            f"out center 5;"
-        )
+    body = "".join(
+        f"{clause}(around:{radius},{latitude},{longitude});" for clause in clauses
+    )
 
     return (
         f"[out:json][timeout:10][bbox:{bbox}];"
-        f"nwr{tag_filter}(around:{radius},{latitude},{longitude});"
-        f"out center 5;"
+        f"({body});"
+        f"out center 10;"
     )
 
 
@@ -139,7 +155,10 @@ async def _search_overpass(latitude: float, longitude: float, query: str) -> lis
         data = resp.json()
 
     results = []
-    for element in data.get("elements", [])[:5]:
+    seen: set[tuple[str, str]] = set()
+    for element in data.get("elements", []):
+        if len(results) >= 5:
+            break
         tags = element.get("tags", {})
         name = tags.get("name")
         if not name:
@@ -147,6 +166,10 @@ async def _search_overpass(latitude: float, longitude: float, query: str) -> lis
 
         osm_type = element.get("type", "node")
         osm_id = element.get("id", "")
+
+        if (osm_type, str(osm_id)) in seen:
+            continue
+        seen.add((osm_type, str(osm_id)))
 
         if osm_type == "node":
             lat = element.get("lat")
